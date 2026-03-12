@@ -1,274 +1,98 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { supabase } from "../../lib/supabase/client";
-import AuthButton from "../components/AuthButton";
-import type React from "react";
-
-type Shop = { id: string; name: string; slug: string };
-type Row = {
-  id: string;
-  start_at: string;
-  end_at: string;
-  status: string;
-  barber_name: string;
-  service_name: string;
-  customer_name: string | null;
-  customer_email: string | null;
-  customer_phone: string | null;
-};
-
-type Metrics = {
-  total_appointments: number;
-  total_done: number;
-  total_revenue_cents: number;
-  unique_customers: number;
-  points_generated: number;
-};
-
+import AdminLayout from "@/components/admin/AdminLayout";
+import RevenueChart from "@/components/admin/RevenueChart";
+import ClientsList from "@/components/admin/ClientsList";
+import TodaySchedule from "@/components/admin/TodaySchedule";
 
 export default function AdminPage() {
-  const [shop, setShop] = useState<Shop | null>(null);
-  const [day, setDay] = useState(() => new Date().toISOString().slice(0, 10)); // yyyy-mm-dd
-  const [rows, setRows] = useState<Row[]>([]);
-  const [msg, setMsg] = useState("");
-  const [loading, setLoading] = useState(true);
-  
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
 
-  const homeHref = useMemo(() => {
-    const last = typeof window !== "undefined" ? localStorage.getItem("last_shop_slug") : null;
-    return last ? `/${last}` : "/";
-  }, []);
+  const revenueData = [
+    { day: "Seg", revenue: 300 },
+    { day: "Ter", revenue: 450 },
+    { day: "Qua", revenue: 500 },
+    { day: "Qui", revenue: 650 },
+    { day: "Sex", revenue: 900 },
+    { day: "Sab", revenue: 1200 }
+  ];
 
-  async function loadShopFromLastSlug() {
-    const last = localStorage.getItem("last_shop_slug");
-    if (!last) return null;
+  const clients = [
+    { id: 1, name: "João", phone: "11999999999" },
+    { id: 2, name: "Pedro", phone: "11988888888" }
+  ];
 
-    const { data, error } = await supabase
-      .from("shops")
-      .select("id,name,slug")
-      .eq("slug", last)
-      .single();
-
-    if (error) {
-      console.error(error);
-      return null;
-    }
-
-    return data as Shop;
-  }
-
-  async function load() {
-    setLoading(true);
-    setMsg("");
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      window.location.href = `/login?next=/admin`;
-      return;
-    }
-
-    const s = await loadShopFromLastSlug();
-    if (!s) {
-      setMsg("Não achei a barbearia (visite /[slug] primeiro).");
-      setLoading(false);
-      return;
-    }
-    setShop(s);
-
-    const [{ data, error}, { data: mData, error: mErr}] = await Promise.all([
-      supabase.rpc("admin_list_appointments", {_shop_id: s.id, _day: day}),
-      supabase.rpc("admin_daily_metrics", {_shop_id: s.id, _day: day}),
-    ]);
-
-    if (mErr) {
-      console.error(mErr);
-    } else {
-      setMetrics((mData?.[0] ?? null) as Metrics | null);
-    }
-
-    if (error) {
-      console.error(error);
-      setMsg(`Erro ao carregar agenda: ${error.message}`);
-      setRows([]);
-    } else {
-      setRows((data ?? []) as Row[]);
-    }
-
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [day]);
-
-  async function setStatus(id: string, status: string) {
-    setMsg("");
-
-    const { error } = await supabase.rpc("admin_set_appointment_status", {
-      _appointment_id: id,
-      _status: status,
-    });
-
-    if (error) {
-      console.error(error);
-      setMsg(error.message);
-      return;
-    }
-
-    await load();
-  }
-
-  async function complete(id: string) {
-    setMsg("");
-
-    const { error } = await supabase.rpc("admin_complete_appointment", {
-        _appointment_id: id,
-    });
-
-    if (error) {
-        console.error(error);
-        setMsg(error.message);
-        return;
-    }
-
-    await load();
-  }
-
-  if (loading) return <div style={{ padding: 16 }}>Carregando...</div>;
+  const appointments = [
+    { id: 1, time: "09:00", service: "Corte", client: "João" },
+    { id: 2, time: "10:00", service: "Barba", client: "Pedro" }
+  ];
 
   return (
-    <div style={{ padding: 16, maxWidth: 920, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Admin</h1>
-          <p style={{ marginTop: 6, opacity: 0.8 }}>
-            {shop ? `Agenda: ${shop.name}` : "Agenda"}
-          </p>
-        </div>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <AuthButton nextPath="/admin" />
+    <AdminLayout>
 
-          <Link href={homeHref} style={{ textDecoration: "none" }}>
-            ← Voltar para a barbearia
-          </Link>
-        </div>
-      </header>
+      <h1 style={{ fontSize: 32, fontWeight: 900 }}>
+        Dashboard
+      </h1>
 
-      {metrics ? (
-        <div
-          style={{
-            marginTop: 16,
-            display: "grid",
-            gridTemplateColumns: "repeat(5, 1fr)",
-            gap: 10,
-          }}
-        >
-          <MetricCard label="Agendamentos" value={metrics.total_appointments} />
-          <MetricCard label="Concluídos" value={metrics.total_done} />
-          <MetricCard label="Faturamento" value={toBRL(metrics.total_revenue_cents)} />
-          <MetricCard label="Clientes únicos" value={metrics.unique_customers} />
-          <MetricCard label="Pontos gerados" value={metrics.points_generated} />
-        </div>
-      ) : null}
+      <div
+        style={{
+          marginTop: 20,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+          gap: 16
+        }}
+      >
 
-      <div style={{ marginTop: 16, display: "flex", gap: 12, alignItems: "center" }}>
-        <label>
-          <b>Dia:</b>{" "}
-          <input type="date" value={day} onChange={(e) => setDay(e.target.value)} />
-        </label>
+        <Card title="Agendamentos hoje" value="12" />
+        <Card title="Faturamento hoje" value="R$540" />
+        <Card title="Clientes atendidos" value="9" />
 
-        <button
-          onClick={load}
-          style={{ height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-        >
-          Recarregar
-        </button>
       </div>
 
-      {msg ? (
-        <div style={{ marginTop: 12, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-          {msg}
-        </div>
-      ) : null}
+      <div
+        style={{
+          marginTop: 30,
+          display: "grid",
+          gridTemplateColumns: "2fr 1fr",
+          gap: 20
+        }}
+      >
 
-      <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-        {rows.length === 0 ? (
-          <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-            Sem agendamentos nesse dia.
-          </div>
-        ) : (
-          rows.map((r) => {
-            const start = new Date(r.start_at);
-            const end = new Date(r.end_at);
+        <RevenueChart data={revenueData} />
 
-            return (
-              <div key={r.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <div><b>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</b> –{" "}
-                      {end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </div>
-                    <div><b>Barbeiro:</b> {r.barber_name}</div>
-                    <div><b>Serviço:</b> {r.service_name}</div>
-                    <div style ={{ marginTop: 6, opacity: 0.9}}>
-                      <div><b>Cliente:</b> {r.customer_name ?? "-"}</div>
-                      <div><b>Email:</b> {r.customer_email ?? "-"}</div>
-                      <div><b>Telefone:</b> {r.customer_phone ?? "-"}</div>
-                    </div>
-                    <div style={{ marginTop: 4}}><b>Status:</b> {r.status}</div>
-                  </div>
+        <TodaySchedule appointments={appointments} />
 
-                  <div style={{ display: "flex", gap: 8, alignItems: "start" }}>
-                    <button
-                      onClick={() => complete(r.id)}
-                      style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-                    >
-                      Done (+pontos)
-                    </button>
-                    <button
-                      onClick={() => setStatus(r.id, "cancelled")}
-                      style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
       </div>
-    </div>
+
+      <div style={{ marginTop: 20 }}>
+        <ClientsList clients={clients} />
+      </div>
+
+    </AdminLayout>
+
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: React.ReactNode }) {
+function Card({ title, value }: any) {
+
   return (
+
     <div
       style={{
-        padding: 12,
-        border: "1px solid #eee",
+        padding: 20,
         borderRadius: 12,
-        background: "#fff",
-        color: "#000"
+        border: "1px solid #1d1d1d",
+        background: "#0f0f0f"
       }}
     >
-      <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>
+
+      <div style={{ opacity: 0.7 }}>
+        {title}
+      </div>
+
+      <div style={{ fontSize: 26, fontWeight: 900 }}>
         {value}
       </div>
-    </div>
-  );
-}
 
-function toBRL(cents: number) {
-  return (cents / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+    </div>
+
+  );
 }

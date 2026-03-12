@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase/client";
-import AuthButton from "../components/AuthButton";
+import AuthButton from "@/components/AuthButton";
 
 type Reward = {
   id: string;

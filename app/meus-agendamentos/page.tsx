@@ -2,8 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../../lib/supabase/client";
-import AuthButton from "../components/AuthButton";
+import { supabase } from "@/lib/supabase/client";
+import AuthButton from "@/components/AuthButton";
 
 type Item = {
   id: string;
