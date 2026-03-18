@@ -3,16 +3,41 @@ import Link from "next/link";
 export default function AdminLayout({ children }: any) {
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundImage: "url('/barber-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        position: "relative"
+      }}
+    >
+
+      {/* OVERLAY ESCURO */}
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.95))",
+          backdropFilter: "blur(3px)"
+        }}
+      />
 
       {/* SIDEBAR */}
 
       <div
         style={{
           width: 240,
-          background: "#0f0f0f",
-          borderRight: "1px solid #1d1d1d",
-          padding: 20
+          background: "rgba(0,0,0,0.65)",
+          borderRight: "1px solid rgba(255,255,255,0.08)",
+          padding: 20,
+          position: "relative",
+          zIndex: 2,
+          backdropFilter: "blur(8px)"
         }}
       >
 
@@ -39,15 +64,27 @@ export default function AdminLayout({ children }: any) {
 
       </div>
 
-
       {/* CONTEÚDO */}
 
-      <div style={{ flex: 1, padding: 30 }}>
+      <div
+        style={{
+          flex: 1,
+          padding: 40,
+          position: "relative",
+          zIndex: 2,
+          color: "#fff",
+          maxWidth: 1400,
+          margin: "0 auto",
+          width: "100%"
+        }}
+      >
         {children}
       </div>
 
     </div>
+
   );
+
 }
 
 function NavLink({ href, children }: any) {
@@ -57,10 +94,12 @@ function NavLink({ href, children }: any) {
       href={href}
       style={{
         padding: "10px 12px",
-        borderRadius: 8,
+        borderRadius: 10,
         textDecoration: "none",
         color: "#fff",
-        background: "#151515"
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.05)",
+        transition: "all .15s ease"
       }}
     >
       {children}

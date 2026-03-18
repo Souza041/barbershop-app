@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase/client";
 import AuthButton from "@/components/AuthButton";
+import AdminLayout from "@/components/admin/AdminLayout";
+import GlassCard from "@/components/ui/GlassCard";
 
 type Reward = {
   id: string;
@@ -112,73 +114,75 @@ export default function RewardsPage() {
   if (loading) return <div style={{ padding: 16 }}>Carregando...</div>;
 
   return (
-    <div style={{ padding: 16, maxWidth: 760, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Recompensas</h1>
-          <p style={{ marginTop: 6, opacity: 0.8 }}>
-            Saldo: <b>{balance}</b> pontos
-          </p>
-        </div>
+    <AdminLayout>
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <div>
+            <h1 style={{ margin: 0 }}>Recompensas</h1>
+            <p style={{ marginTop: 6, opacity: 0.8 }}>
+              Saldo: <b>{balance}</b> pontos
+            </p>
+          </div>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <AuthButton nextPath="/recompensas" />
-          <Link href={homeHref} style={{ textDecoration: "none" }}>
-            ← Home
-          </Link>
-        </div>
-      </header>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <AuthButton nextPath="/recompensas" />
+            <Link href={homeHref} style={{ textDecoration: "none" }}>
+              ← Home
+            </Link>
+          </div>
+        </header>
 
-      {msg ? (
-        <div style={{ marginTop: 12, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-          {msg}
-        </div>
-      ) : null}
+        {msg ? (
+          <div style={{ marginTop: 12, padding: 12, border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10 }}>
+            {msg}
+          </div>
+        ) : null}
 
-      {!canSee ? null : (
-        <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-          {rewards.length === 0 ? (
-            <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-              Sem recompensas cadastradas ainda.
-            </div>
-          ) : (
-            rewards.map((r) => {
-              const disabled = balance < r.cost_points;
-              return (
-                <div key={r.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{r.title}</div>
-                      <div style={{ opacity: 0.8 }}>{r.description ?? ""}</div>
-                      <div style={{ marginTop: 6 }}>
-                        Custo: <b>{r.cost_points}</b> pts
+        {!canSee ? null : (
+          <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+            {rewards.length === 0 ? (
+              <GlassCard>
+                Sem recompensas cadastradas ainda.
+              </GlassCard>
+            ) : (
+              rewards.map((r) => {
+                const disabled = balance < r.cost_points;
+                return (
+                  <GlassCard key={r.id}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{r.title}</div>
+                        <div style={{ opacity: 0.8 }}>{r.description ?? ""}</div>
+                        <div style={{ marginTop: 6 }}>
+                          Custo: <b>{r.cost_points}</b> pts
+                        </div>
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() => redeem(r.id)}
-                      disabled={disabled}
-                      style={{
-                        height: 40,
-                        padding: "0 12px",
-                        borderRadius: 10,
-                        border: "1px solid #ddd",
-                        cursor: disabled ? "not-allowed" : "pointer",
-                        opacity: disabled ? 0.5 : 1,
-                        fontWeight: 600,
-                        alignSelf: "start",
-                      }}
-                      title={disabled ? "Saldo insuficiente" : "Pedir resgate"}
-                    >
-                      Resgatar
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
-    </div>
+                      <button
+                        onClick={() => redeem(r.id)}
+                        disabled={disabled}
+                        style={{
+                          height: 40,
+                          padding: "0 12px",
+                          borderRadius: 10,
+                          border: "1px solid #ddd",
+                          cursor: disabled ? "not-allowed" : "pointer",
+                          opacity: disabled ? 0.5 : 1,
+                          fontWeight: 600,
+                          alignSelf: "start",
+                        }}
+                        title={disabled ? "Saldo insuficiente" : "Pedir resgate"}
+                      >
+                        Resgatar
+                      </button>
+                    </div>
+                  </GlassCard>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
+    </AdminLayout>
   );
 }

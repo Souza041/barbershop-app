@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import AuthButton from "@/components/AuthButton";
+import AdminLayout from "@/components/admin/AdminLayout";
 
 type Shop = { id: string; slug: string; name: string };
 
@@ -161,171 +162,173 @@ export default function AdminRewardsPage() {
   if (loading) return <div style={{ padding: 16 }}>Carregando...</div>;
 
   return (
-    <div style={{ padding: 16, maxWidth: 980, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Admin • Recompensas</h1>
-          <p style={{ marginTop: 6, opacity: 0.8 }}>{shop ? shop.name : ""}</p>
-        </div>
-
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <AuthButton nextPath="/admin/recompensas" />
-          <Link href="/admin" style={{ textDecoration: "none" }}>
-            ← Admin
-          </Link>
-        </div>
-      </header>
-
-      {msg ? (
-        <div style={{ marginTop: 12, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-          {msg}
-        </div>
-      ) : null}
-
-      {/* Form */}
-      <div style={{ marginTop: 14, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-          <h2 style={{ margin: 0 }}>{editingId ? "Editar recompensa" : "Nova recompensa"}</h2>
-          <button
-            type="button"
-            onClick={startCreate}
-            style={{ height: 36, padding: "0 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-          >
-            Limpar
-          </button>
-        </div>
-
-        <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+    <AdminLayout>
+      <div style={{ padding: 16, maxWidth: 980, margin: "0 auto" }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div>
-            <label><b>Título</b></label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: "100%", height: 42, marginTop: 6 }} />
+            <h1 style={{ margin: 0 }}>Admin • Recompensas</h1>
+            <p style={{ marginTop: 6, opacity: 0.8 }}>{shop ? shop.name : ""}</p>
           </div>
 
-          <div>
-            <label><b>Descrição</b></label>
-            <input value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: "100%", height: 42, marginTop: 6 }} />
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <AuthButton nextPath="/admin/recompensas" />
+            <Link href="/admin" style={{ textDecoration: "none" }}>
+              ← Admin
+            </Link>
+          </div>
+        </header>
+
+        {msg ? (
+          <div style={{ marginTop: 12, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+            {msg}
+          </div>
+        ) : null}
+
+        {/* Form */}
+        <div style={{ marginTop: 14, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+            <h2 style={{ margin: 0 }}>{editingId ? "Editar recompensa" : "Nova recompensa"}</h2>
+            <button
+              type="button"
+              onClick={startCreate}
+              style={{ height: 36, padding: "0 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
+            >
+              Limpar
+            </button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
             <div>
-              <label><b>Custo (pontos)</b></label>
-              <input
-                type="number"
-                value={costPoints}
-                onChange={(e) => setCostPoints(Number(e.target.value))}
-                style={{ width: "100%", height: 42, marginTop: 6 }}
-              />
+              <label><b>Título</b></label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: "100%", height: 42, marginTop: 6 }} />
             </div>
 
-            <div style={{ display: "flex", alignItems: "end", gap: 8 }}>
-              <input
-                id="active"
-                type="checkbox"
-                checked={isActive}
-                onChange={(e) => setIsActive(e.target.checked)}
-              />
-              <label htmlFor="active"><b>Ativo</b></label>
+            <div>
+              <label><b>Descrição</b></label>
+              <input value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: "100%", height: 42, marginTop: 6 }} />
             </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div>
+                <label><b>Custo (pontos)</b></label>
+                <input
+                  type="number"
+                  value={costPoints}
+                  onChange={(e) => setCostPoints(Number(e.target.value))}
+                  style={{ width: "100%", height: 42, marginTop: 6 }}
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "end", gap: 8 }}>
+                <input
+                  id="active"
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                />
+                <label htmlFor="active"><b>Ativo</b></label>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={saveReward}
+              style={{ height: 44, borderRadius: 10, border: "1px solid #ddd", cursor: "pointer", fontWeight: 700 }}
+            >
+              Salvar recompensa
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={saveReward}
-            style={{ height: 44, borderRadius: 10, border: "1px solid #ddd", cursor: "pointer", fontWeight: 700 }}
-          >
-            Salvar recompensa
-          </button>
         </div>
-      </div>
 
-      {/* Rewards list */}
-      <div style={{ marginTop: 14 }}>
-        <h2>Recompensas</h2>
-        <div style={{ display: "grid", gap: 10 }}>
-          {rewards.length === 0 ? (
-            <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-              Nenhuma recompensa cadastrada.
-            </div>
-          ) : (
-            rewards.map((r) => (
-              <div key={r.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <div style={{ fontWeight: 800 }}>{r.title}</div>
-                    <div style={{ opacity: 0.8 }}>{r.description ?? ""}</div>
-                    <div style={{ marginTop: 6 }}>
-                      Custo: <b>{r.cost_points}</b> • Ativo: <b>{String(r.is_active)}</b>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => startEdit(r)}
-                    style={{ height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-                  >
-                    Editar
-                  </button>
-                </div>
+        {/* Rewards list */}
+        <div style={{ marginTop: 14 }}>
+          <h2>Recompensas</h2>
+          <div style={{ display: "grid", gap: 10 }}>
+            {rewards.length === 0 ? (
+              <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+                Nenhuma recompensa cadastrada.
               </div>
-            ))
-          )}
-        </div>
-      </div>
+            ) : (
+              rewards.map((r) => (
+                <div key={r.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: 800 }}>{r.title}</div>
+                      <div style={{ opacity: 0.8 }}>{r.description ?? ""}</div>
+                      <div style={{ marginTop: 6 }}>
+                        Custo: <b>{r.cost_points}</b> • Ativo: <b>{String(r.is_active)}</b>
+                      </div>
+                    </div>
 
-      {/* Redemptions */}
-      <div style={{ marginTop: 18 }}>
-        <h2>Pedidos de resgate</h2>
-        <div style={{ display: "grid", gap: 10 }}>
-          {redemptions.length === 0 ? (
-            <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-              Nenhum pedido ainda.
-            </div>
-          ) : (
-            redemptions.map((d) => (
-              <div key={d.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <div style={{ fontWeight: 800 }}>{d.reward_title}</div>
-                    <div style={{ opacity: 0.8 }}>
-                      {d.reward_cost} pts • {new Date(d.created_at).toLocaleString()}
-                    </div>
-                    <div style={{ marginTop: 6 }}>
-                      Status: <b>{d.status}</b>
-                    </div>
-                    <div style={{ marginTop: 6, opacity: 0.8 }}>
-                      Cliente: {d.customer_id}
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 8, alignItems: "start" }}>
                     <button
                       type="button"
-                      onClick={() => setRedemptionStatus(d.id, "approved")}
-                      style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
+                      onClick={() => startEdit(r)}
+                      style={{ height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
                     >
-                      Aprovar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRedemptionStatus(d.id, "rejected")}
-                      style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-                    >
-                      Rejeitar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRedemptionStatus(d.id, "fulfilled")}
-                      style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-                    >
-                      Entregue
+                      Editar
                     </button>
                   </div>
                 </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Redemptions */}
+        <div style={{ marginTop: 18 }}>
+          <h2>Pedidos de resgate</h2>
+          <div style={{ display: "grid", gap: 10 }}>
+            {redemptions.length === 0 ? (
+              <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+                Nenhum pedido ainda.
               </div>
-            ))
-          )}
+            ) : (
+              redemptions.map((d) => (
+                <div key={d.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: 800 }}>{d.reward_title}</div>
+                      <div style={{ opacity: 0.8 }}>
+                        {d.reward_cost} pts • {new Date(d.created_at).toLocaleString()}
+                      </div>
+                      <div style={{ marginTop: 6 }}>
+                        Status: <b>{d.status}</b>
+                      </div>
+                      <div style={{ marginTop: 6, opacity: 0.8 }}>
+                        Cliente: {d.customer_id}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, alignItems: "start" }}>
+                      <button
+                        type="button"
+                        onClick={() => setRedemptionStatus(d.id, "approved")}
+                        style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
+                      >
+                        Aprovar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRedemptionStatus(d.id, "rejected")}
+                        style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
+                      >
+                        Rejeitar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRedemptionStatus(d.id, "fulfilled")}
+                        style={{ height: 38, padding: "0 10px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
+                      >
+                        Entregue
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

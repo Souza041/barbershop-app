@@ -4,6 +4,8 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import AuthButton from "@/components/AuthButton";
+import PageContainer from "@/components/ui/PageContainer";
+import GlassCard from "@/components/ui/GlassCard";
 
 type Item = {
   id: string;
@@ -78,7 +80,7 @@ export default function MyAppointmentsPage() {
   if (loading) return <div style={{ padding: 16 }}>Carregando...</div>;
 
   return (
-    <div style={{ padding: 16, maxWidth: 760, margin: "0 auto" }}>
+    <PageContainer>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <div>
           <h1 style={{ margin: 0 }}>Meus agendamentos</h1>
@@ -111,7 +113,7 @@ export default function MyAppointmentsPage() {
             const canCancel = a.status === "confirmed";
 
             return (
-              <div key={a.id} style={{ padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+              <GlassCard key={a.id}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                   <div>
                     <div><b>Serviço:</b> {a.services?.name ?? "-"}</div>
@@ -130,7 +132,9 @@ export default function MyAppointmentsPage() {
                         height: 40,
                         padding: "0 12px",
                         borderRadius: 10,
-                        border: "1px solid #ddd",
+                        border: "1px solid rgba(255,255,255,0,2)",
+                        background: "#111",
+                        color: "#fff",
                         cursor: "pointer",
                         alignSelf: "start",
                       }}
@@ -139,11 +143,11 @@ export default function MyAppointmentsPage() {
                     </button>
                   ) : null}
                 </div>
-              </div>
+              </GlassCard>
             );
           })
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }

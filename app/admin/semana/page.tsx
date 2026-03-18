@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import AuthButton from "@/components/AuthButton";
+import AdminLayout from "@/components/admin/AdminLayout";
+import GlassCard from "@/components/ui/GlassCard";
 
 type Shop = { id: string; slug: string; name: string };
 
@@ -41,7 +43,7 @@ function WeeklyBarChart({ rows }: { rows: Row[] }) {
   const max = Math.max(1, ...rows.map((r) => r.revenue_cents || 0));
 
   return (
-    <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 12 }}>
+    <GlassCard>
       <div style={{ fontWeight: 800, marginBottom: 10 }}>Faturamento por dia</div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 10, alignItems: "end" }}>
@@ -79,13 +81,13 @@ function WeeklyBarChart({ rows }: { rows: Row[] }) {
           );
         })}
       </div>
-    </div>
+    </GlassCard>
   );
 }
 
 function MetricCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 12 }}>
+    <div style={{ padding: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", borderRadius: 12 }}>
       <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{value}</div>
     </div>
@@ -188,68 +190,70 @@ export default function AdminWeekPage() {
   if (loading) return <div style={{ padding: 16 }}>Carregando...</div>;
 
   return (
-    <div style={{ padding: 16, maxWidth: 980, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Admin • Semana</h1>
-          <p style={{ marginTop: 6, opacity: 0.8 }}>{shop ? shop.name : ""}</p>
+    <AdminLayout>
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <div>
+            <h1 style={{ margin: 0 }}>Admin • Semana</h1>
+            <p style={{ marginTop: 6, opacity: 0.8 }}>{shop ? shop.name : ""}</p>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <AuthButton nextPath="/admin/semana" />
+            <Link href="/admin" style={{ textDecoration: "none" }}>← Admin</Link>
+            <Link href={homeHref} style={{ textDecoration: "none" }}>Home</Link>
+          </div>
+        </header>
+
+        <div style={{ marginTop: 14, display: "flex", gap: 12, alignItems: "center" }}>
+          <label>
+            <b>Semana (segunda):</b>{" "}
+            <input type="date" value={weekStart} onChange={(e) => setWeekStart(e.target.value)} />
+          </label>
+
+          <button
+            onClick={load}
+            style={{ height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
+          >
+            Recarregar
+          </button>
         </div>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <AuthButton nextPath="/admin/semana" />
-          <Link href="/admin" style={{ textDecoration: "none" }}>← Admin</Link>
-          <Link href={homeHref} style={{ textDecoration: "none" }}>Home</Link>
+        {msg ? (
+          <div style={{ marginTop: 12, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
+            {msg}
+          </div>
+        ) : null}
+
+        <div style={{ marginTop: 16 }}>
+          <WeeklyBarChart rows={rows} />
         </div>
-      </header>
 
-      <div style={{ marginTop: 14, display: "flex", gap: 12, alignItems: "center" }}>
-        <label>
-          <b>Semana (segunda):</b>{" "}
-          <input type="date" value={weekStart} onChange={(e) => setWeekStart(e.target.value)} />
-        </label>
-
-        <button
-          onClick={load}
-          style={{ height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
-        >
-          Recarregar
-        </button>
-      </div>
-
-      {msg ? (
-        <div style={{ marginTop: 12, padding: 12, border: "1px solid #eee", borderRadius: 10 }}>
-          {msg}
+        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+          <MetricCard label="Agendamentos (semana)" value={totals.total_appointments} />
+          <MetricCard label="Concluídos (semana)" value={totals.total_done} />
+          <MetricCard label="Faturamento (semana)" value={toBRL(totals.revenue_cents)} />
+          <MetricCard label="Pontos gerados" value={totals.points_generated} />
         </div>
-      ) : null}
 
-      <div style={{ marginTop: 16 }}>
-        <WeeklyBarChart rows={rows} />
-      </div>
-
-      <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
-        <MetricCard label="Agendamentos (semana)" value={totals.total_appointments} />
-        <MetricCard label="Concluídos (semana)" value={totals.total_done} />
-        <MetricCard label="Faturamento (semana)" value={toBRL(totals.revenue_cents)} />
-        <MetricCard label="Pontos gerados" value={totals.points_generated} />
-      </div>
-
-      <div style={{ marginTop: 14, padding: 12, border: "1px solid #eee", borderRadius: 12 }}>
-        <div style={{ fontWeight: 800, marginBottom: 8 }}>Detalhe por dia</div>
-        <div style={{ display: "grid", gap: 8 }}>
-          {rows.map((r) => (
-            <div key={r.day} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-              <div style={{ opacity: 0.8 }}>{fmtDayLabel(r.day)}</div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "end" }}>
-                <span><b>{r.total_appointments}</b> ag</span>
-                <span><b>{r.total_done}</b> done</span>
-                <span><b>{r.unique_customers}</b> clientes</span>
-                <span><b>{r.points_generated}</b> pts</span>
-                <span><b>{toBRL(r.revenue_cents)}</b></span>
+        <GlassCard>
+          <div style={{ fontWeight: 800, marginBottom: 8 }}>Detalhe por dia</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {rows.map((r) => (
+              <div key={r.day} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ opacity: 0.8 }}>{fmtDayLabel(r.day)}</div>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "end" }}>
+                  <span><b>{r.total_appointments}</b> ag</span>
+                  <span><b>{r.total_done}</b> done</span>
+                  <span><b>{r.unique_customers}</b> clientes</span>
+                  <span><b>{r.points_generated}</b> pts</span>
+                  <span><b>{toBRL(r.revenue_cents)}</b></span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </GlassCard>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
